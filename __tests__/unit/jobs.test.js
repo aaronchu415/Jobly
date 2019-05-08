@@ -6,12 +6,12 @@ const db = require("../../db");
 var testJobID
 
 beforeEach(async function () {
-    //make sure jobs and company table is clear
-    await db.query("DELETE FROM jobs");
-    await db.query("DELETE FROM companies");
+  //make sure jobs and company table is clear
+  await db.query("DELETE FROM jobs");
+  await db.query("DELETE FROM companies");
 
-    //add 1 company
-    await db.query(`
+  //add 1 company
+  await db.query(`
     INSERT INTO companies
     VALUES ('amzn',
             'Amazon',
@@ -21,8 +21,8 @@ beforeEach(async function () {
     RETURNING handle
     `);
 
-    //add 1 job
-    let resultJob = await db.query(`
+  //add 1 job
+  let resultJob = await db.query(`
     INSERT INTO jobs (title,salary,equity,company_handle)
     VALUES ('Junior Software Enginner',
             120000.5,
@@ -31,159 +31,159 @@ beforeEach(async function () {
     RETURNING id
     `);
 
-    testJobID = resultJob.rows[0].id;
+  testJobID = resultJob.rows[0].id;
 });
 
 afterEach(async function () {
-    await db.query("DELETE FROM jobs");
-    await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM jobs");
+  await db.query("DELETE FROM companies");
 });
 
 afterAll(async function () {
-    await db.end();
+  await db.end();
 });
 
 describe("GET /jobs", function () {
 
-    const jobResult = { title: 'Junior Software Enginner', company_handle: 'amzn' }
+  const jobResult = { title: 'Junior Software Enginner', company_handle: 'amzn' }
 
-    test("NO FILTER - Return title and company_handle for all of the jobs objects", async function () {
+  test("NO FILTER - Return title and company_handle for all of the jobs objects", async function () {
 
-        const response = await request(app)
-            .get("/jobs");
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toHaveProperty("jobs")
-        expect(response.body.jobs).toEqual([jobResult])
-    })
+    const response = await request(app)
+      .get("/jobs");
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty("jobs")
+    expect(response.body.jobs).toEqual([jobResult])
+  })
 
-    test("WITH FILTER - Return title & company for all of the jobs", async function () {
-        const response = await request(app)
-            .get("/jobs?search=software");
-        expect(response.statusCode).toBe(200);
-    })
+  test("WITH FILTER - Return title & company for all of the jobs", async function () {
+    const response = await request(app)
+      .get("/jobs?search=software");
+    expect(response.statusCode).toBe(200);
+  })
 
-    test("WITH FILTER - Return no results", async function () {
-        const response = await request(app)
-            .get("/jobs?search=abc");
-        expect(response.statusCode).toBe(200);
-        expect(response.body.jobs).toEqual([])
-    })
+  test("WITH FILTER - Return no results", async function () {
+    const response = await request(app)
+      .get("/jobs?search=abc");
+    expect(response.statusCode).toBe(200);
+    expect(response.body.jobs).toEqual([])
+  })
 })
 
 describe("DELETE /jobs", function () {
 
-    test("Should remove an existing job and return a message => { message: 'Job deleted' ", async function () {
-        const response = await request(app)
-            .delete(`/jobs/${testJobID}`);
+  test("Should remove an existing job and return a message => { message: 'Job deleted' ", async function () {
+    const response = await request(app)
+      .delete(`/jobs/${testJobID}`);
 
-        //test status code and response   
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toEqual({ message: 'Job deleted' })
+    //test status code and response   
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual({ message: 'Job deleted' })
 
-        //query DB for handle. Should not exist in db
-        let testResult = await db.query(`
+    //query DB for handle. Should not exist in db
+    let testResult = await db.query(`
         SELECT * from jobs WHERE id=$1
         `, [testJobID]);
-        expect(testResult.rows).toHaveLength(0);
-    })
+    expect(testResult.rows).toHaveLength(0);
+  })
 })
 
 describe("POST /jobs", function () {
 
-    test("Create a new job (With valid data)", async function () {
+  test("Create a new job (With valid data)", async function () {
 
-        let data = {
-            title: "Sales Associate",
-            salary: 200000,
-            equity: 0.2,
-            company_handle: "amzn"
-        }
+    let data = {
+      title: "Sales Associate",
+      salary: 200000,
+      equity: 0.2,
+      company_handle: "amzn"
+    }
 
-        const response = await request(app)
-            .post("/jobs")
-            .send(data);
+    const response = await request(app)
+      .post("/jobs")
+      .send(data);
 
-        expect(response.statusCode).toBe(201);
-        expect(response.body.job.title).toEqual("Sales Associate")
-        expect(response.body.job.company_handle).toEqual("amzn");
+    expect(response.statusCode).toBe(201);
+    expect(response.body.job.title).toEqual("Sales Associate")
+    expect(response.body.job.company_handle).toEqual("amzn");
 
-        //db should have two records 
-        let resultAll = await db.query(`
+    //db should have two records 
+    let resultAll = await db.query(`
         SELECT * from jobs`);
-        expect(resultAll.rows).toHaveLength(2);
-    })
+    expect(resultAll.rows).toHaveLength(2);
+  })
 
-    test("Create a new job (Without valid data)", async function () {
+  test("Create a new job (Without valid data)", async function () {
 
-        let data = {
-            title: "Software Engineer",
-            equity: 0.3,
-            company_handle: "amzn"
-        }
+    let data = {
+      title: "Software Engineer",
+      equity: 0.3,
+      company_handle: "amzn"
+    }
 
-        const response = await request(app)
-            .post("/jobs")
-            .send(data);
-        expect(response.statusCode).toBe(400);
-        expect(response.body).toHaveProperty("message")
-        expect(response.body).toHaveProperty("status")
+    const response = await request(app)
+      .post("/jobs")
+      .send(data);
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toHaveProperty("message")
+    expect(response.body).toHaveProperty("status")
 
-        //db should have one records 
-        let resultAll = await db.query(`
+    //db should have one records 
+    let resultAll = await db.query(`
         SELECT * from jobs`);
-        expect(resultAll.rows).toHaveLength(1);
-    })
+    expect(resultAll.rows).toHaveLength(1);
+  })
 });
 
 describe("GET /jobs/:id", function () {
-    test("Get single job information", async function () {
+  test("Get single job information", async function () {
 
-        const response = await request(app).get(`/jobs/${testJobID}`)
-        expect(response.statusCode).toBe(200);
-    });
+    const response = await request(app).get(`/jobs/${testJobID}`)
+    expect(response.statusCode).toBe(200);
+  });
 
-    test("Non existing job - nothing returned", async function () {
-        const response = await request(app).get("/jobs/876")
+  test("Non existing job - nothing returned", async function () {
+    const response = await request(app).get("/jobs/876")
 
-        expect(response.statusCode).toBe(404);
-        expect(response.body).toEqual({ message: `There is no job with an id of '876'`, status: 404 })
-    })
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toEqual({ message: `There is no job with an id of '876'`, status: 404 })
+  })
 });
 
 describe("PATCH /jobs/:id", function () {
-    test("Update single job record", async function () {
-   
-        const response = await request(app)
-            .patch(`/jobs/${testJobID}`)
-            .send({
-                title: "Web Developer"
-            });
+  test("Update single job record", async function () {
 
-        expect(response.statusCode).toBe(200)
-        expect(response.body.job.title).toEqual("Web Developer");
+    const response = await request(app)
+      .patch(`/jobs/${testJobID}`)
+      .send({
+        title: "Web Developer"
+      });
 
-        //Should update db record
-        let result = await db.query(`
+    expect(response.statusCode).toBe(200)
+    expect(response.body.job.title).toEqual("Web Developer");
+
+    //Should update db record
+    let result = await db.query(`
         SELECT * from jobs WHERE id=$1
         `, [testJobID]);
-        expect(result.rows[0].title).toEqual("Web Developer");
+    expect(result.rows[0].title).toEqual("Web Developer");
+  })
+
+  test("Update single job record with insufficient fields", async function () {
+
+    const response = await request(app)
+      .patch(`/jobs/${testJobID}`)
+      .send({
+        title: null
+      });
+    expect(response.statusCode).toBe(400)
+    expect(response.body).toEqual({
+      status: 400,
+      message:
+        ['instance.title is not of a type(s) string']
     })
 
-    test("Update single job record with insufficient fields", async function () {
-
-        const response = await request(app)
-            .patch(`/jobs/${testJobID}`)
-            .send({
-                title: null
-            });
-        expect(response.statusCode).toBe(400)
-        expect(response.body).toEqual({
-            status: 400,
-            message:
-             [ 'instance.title is not of a type(s) string' ] 
-        })
-
-    })
+  })
 });
 
 
