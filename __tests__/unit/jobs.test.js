@@ -113,33 +113,26 @@ describe("POST /jobs", function () {
         expect(resultAll.rows).toHaveLength(2);
     })
 
-    // test("Create a new company (Without valid data)", async function () {
+    test("Create a new job (Without valid data)", async function () {
 
-    //     let data = {
-    //         handle: "aapl",
-    //         num_employees: 2000,
-    //         description: "Hardware Company",
-    //         logo_url: "https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1"
-    //     }
+        let data = {
+            title: "Software Engineer",
+            equity: 0.3,
+            company_handle: "amzn"
+        }
 
-    //     const response = await request(app)
-    //         .post("/companies")
-    //         .send(data);
-    //     expect(response.statusCode).toBe(400);
-    //     expect(response.body).toHaveProperty("message")
-    //     expect(response.body).toHaveProperty("status")
+        const response = await request(app)
+            .post("/jobs")
+            .send(data);
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toHaveProperty("message")
+        expect(response.body).toHaveProperty("status")
 
-    //     //Should not add to db
-    //     let result = await db.query(`
-    //     SELECT * from companies WHERE handle=$1
-    //     `, [data.handle]);
-    //     expect(result.rows).toHaveLength(0);
-
-    //     //db should have one records 
-    //     let resultAll = await db.query(`
-    //     SELECT * from companies`);
-    //     expect(resultAll.rows).toHaveLength(1);
-    // })
+        //db should have one records 
+        let resultAll = await db.query(`
+        SELECT * from jobs`);
+        expect(resultAll.rows).toHaveLength(1);
+    })
 });
 
 describe("GET /jobs/:id", function () {
@@ -176,23 +169,21 @@ describe("PATCH /jobs/:id", function () {
         expect(result.rows[0].title).toEqual("Web Developer");
     })
 
-    // test("Update single company record with invalid field", async function () {
+    test("Update single job record with insufficient fields", async function () {
 
-    //     const response = await request(app)
-    //         .patch("/companies/amzn")
-    //         .send({
-    //             name: null
-    //         });
+        const response = await request(app)
+            .patch(`/jobs/${testJobID}`)
+            .send({
+                title: null
+            });
+        expect(response.statusCode).toBe(400)
+        expect(response.body).toEqual({
+            status: 400,
+            message:
+             [ 'instance.title is not of a type(s) string' ] 
+        })
 
-    //     expect(response.statusCode).toBe(400)
-    //     expect(response.body).toEqual({
-    //         "status": 400,
-    //         "message": [
-    //             "instance.name is not of a type(s) string"
-    //         ]
-    //     })
-
-    // })
+    })
 });
 
 

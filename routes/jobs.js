@@ -4,7 +4,7 @@ const Job = require('../models/jobs')
 const ExpressError = require('../helpers/expressError')
 
 const jsonschema = require("jsonschema");
-// const companySchema = require("../schemas/companySchema.json");
+const jobSchema = require("../schemas/jobSchema.json");
 
 /** GET / => {jobs: [jobsData, ...]}  */
 
@@ -30,12 +30,12 @@ router.get("/:id", async function (req, res, next) {
 
 router.post("/", async function (req, res, next) {
   try {
-    // const result = jsonschema.validate(req.body, companySchema);
-    // if (!result.valid) {
-    //   let listOfErrors = result.errors.map(error => error.stack);
-    //   let error = new ExpressError(listOfErrors, 400);
-    //   return next(error);
-    // }
+    const result = jsonschema.validate(req.body, jobSchema);
+    if (!result.valid) {
+      let listOfErrors = result.errors.map(error => error.stack);
+      let error = new ExpressError(listOfErrors, 400);
+      return next(error);
+    }
     const job = await Job.create(req.body);
     return res.status(201).json({ job });
   } catch (err) {
@@ -46,18 +46,19 @@ router.post("/", async function (req, res, next) {
 router.patch("/:id", async function (req, res, next) {
   try {
 
-    // //get company record by handle
-    // let originalJob = await Job.findOne(req.params.id);
+    //get company record by handle
+    let originalJob = await Job.findOne(req.params.id, true);
 
-    // //spread original company and req.body and assign/update request values to the orignal record
-    // const patchedJob = { ...originalJob, ...req.body }
+    //spread original company and req.body and assign/update request values to the orignal record
+    const patchedJob = { ...originalJob, ...req.body }
 
-    // const result = jsonschema.validate(patchedJob, jobSchema);
-    // if (!result.valid) {
-    //   let listOfErrors = result.errors.map(error => error.stack);
-    //   let error = new ExpressError(listOfErrors, 400);
-    //   return next(error);
-    // }
+
+    const result = jsonschema.validate(patchedJob, jobSchema);
+    if (!result.valid) {
+      let listOfErrors = result.errors.map(error => error.stack);
+      let error = new ExpressError(listOfErrors, 400);
+      return next(error);
+    }
 
     const job = await Job.update(req.params.id, req.body);
     return res.json({ job })
