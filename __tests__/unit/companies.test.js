@@ -59,23 +59,23 @@ describe("GET /companies", function () {
     })
 })
 
-// describe("DELETE /companies", function () {
+describe("DELETE /companies", function () {
 
-//     test("Should remove an existing company and return a message => {message: 'Company deleted'}", async function () {
-//         const response = await request(app)
-//             .delete(`/companies/${testCompanyHandle}`);
+    test("Should remove an existing company and return a message => {message: 'Company deleted'}", async function () {
+        const response = await request(app)
+            .delete(`/companies/${testCompanyHandle}`);
 
-//         //test status code and response   
-//         expect(response.statusCode).toBe(201);
-//         expect(response.body).toEqual({ message: 'Company deleted' })
+        //test status code and response   
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toEqual({ message: 'Company deleted' })
 
-//         //query DB for handle. Should not exist in db
-//         let testHandleResult = await db.query(`
-//         SELECT * from companies WHERE handle=$1
-//         `, [testCompanyHandle]);
-//         expect(testHandleResult.rows).toHaveLength(0);
-//     })
-// })
+        //query DB for handle. Should not exist in db
+        let testHandleResult = await db.query(`
+        SELECT * from companies WHERE handle=$1
+        `, [testCompanyHandle]);
+        expect(testHandleResult.rows).toHaveLength(0);
+    })
+})
 
 describe("POST /companies", function () {
 
@@ -134,6 +134,76 @@ describe("POST /companies", function () {
         let resultAll = await db.query(`
         SELECT * from companies`);
         expect(resultAll.rows).toHaveLength(1);
+    })
+
+    describe("GET /companies/:handle", function() {
+        test("Get single company information", async function() {
+            const companyResult = {
+                handle: 'amzn',
+                name: 'Amazon',
+                num_employees: 1000,
+                description: 'Ecommerce company',
+                logo_url:
+                    'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1'
+            }
+
+            const response = await request(app).get("/companies/amzn")
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body.company).toEqual(companyResult);
+        });
+
+        test("Non existing company - no return", async function() {
+            const response = await request(app).get("/companies/abc")
+            
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toEqual({ message: `There is no company with a handle 'abc'`, status: 404 })
+        })
+    });
+
+    describe("PATCH /companies/:handle", function() {
+        test("Update single company record", async function() {
+            const companyResult = {
+                handle: 'amzn',
+                name: 'Amazon',
+                num_employees: 7896,
+                description: 'Ecommerce company',
+                logo_url:
+                    'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1'
+            }
+            const response = await request(app)
+                .patch("/companies/amzn")
+                .send({
+                    num_employees: 7896
+            });
+
+            expect(response.statusCode).toBe(200)
+            expect(response.body.company).toEqual(companyResult);
+              
+            //Should update db record
+            let result = await db.query(`
+            SELECT * from companies WHERE handle=$1
+            `, [companyResult.handle]);
+             expect(result.rows[0]).toEqual(companyResult);
+        })
+
+        test("Update single company record with invalid field", async function() {
+   
+            const response = await request(app)
+                .patch("/companies/amzn")
+                .send({
+                    name: null
+            });
+
+            expect(response.statusCode).toBe(400)
+            expect(response.body).toEqual({
+                "status": 400,
+                "message": [
+                  "instance.name is not of a type(s) string"
+                ]
+              });
+            
+        });
     })
 
 })
