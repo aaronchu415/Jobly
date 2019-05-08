@@ -22,7 +22,7 @@ class Company {
             WHERE handle = $1`, [handle]);
 
     if (companyRes.rows.length === 0) {
-      throw { message: `There is no company with a handle '${handle}`, status: 404 }
+      throw { message: `There is no company with a handle '${handle}'`, status: 404 }
     }
     return companyRes.rows[0];
   }
@@ -69,7 +69,6 @@ class Company {
     if (wheres.length > 0) {
       query = query + ' WHERE ' + wheres.join(' AND ')
     }
-    console.log(query, values)
 
     const companyRes = await db.query(query, values);
 
