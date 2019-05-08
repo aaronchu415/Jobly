@@ -153,7 +153,8 @@ describe("POST /companies", function () {
                 num_employees: 1000,
                 description: 'Ecommerce company',
                 logo_url:
-                    'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1'
+                    'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1',
+                jobs: []
             }
 
             const response = await request(app).get("/companies/amzn")

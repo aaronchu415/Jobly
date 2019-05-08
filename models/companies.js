@@ -24,7 +24,15 @@ class Company {
         if (companyRes.rows.length === 0) {
             throw { message: `There is no company with a handle '${handle}'`, status: 404 }
         }
-        return companyRes.rows[0];
+
+        const jobs = await db.query(
+            `SELECT title FROM jobs WHERE company_handle = $1`, [handle]
+        )
+
+        let company = companyRes.rows[0]
+        company.jobs = jobs.rows
+
+        return company
     }
 
     /** Return array of company data:
