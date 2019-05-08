@@ -6,6 +6,18 @@ const ExpressError = require('../helpers/expressError')
 const jsonschema = require("jsonschema");
 const companySchema = require("../schemas/companySchema.json");
 
+/** GET / => {companies: [company, ...]}  */
+
+router.get("/", async function (req, res, next) {
+    try {
+      const companies = await Company.findAll(req.query);
+      return res.json({ companies });
+    } catch (err) {
+      return next(err);
+    }
+  });
+
+
 /** POST /   companyData => {company: companyData} */
 
 router.post("/", async function (req, res, next) {
