@@ -17,66 +17,66 @@ router.get("/", async function (req, res, next) {
   }
 });
 
-// router.get("/:handle", async function (req, res, next) {
-//   try {
-//     const company = await Company.findOne(req.params.handle);
-//     return res.json({ company });
-//   } catch (err) {
-//     return next(err);
-//   }
-// })
+router.get("/:id", async function (req, res, next) {
+  try {
+    const job = await Job.findOne(req.params.id);
+    return res.json({ job });
+  } catch (err) {
+    return next(err);
+  }
+})
 
-// /** POST /   companyData => {company: companyData} */
+/** POST /   jobs  => {job: jobData} */
 
-// router.post("/", async function (req, res, next) {
-//   try {
-//     const result = jsonschema.validate(req.body, companySchema);
-//     if (!result.valid) {
-//       let listOfErrors = result.errors.map(error => error.stack);
-//       let error = new ExpressError(listOfErrors, 400);
-//       return next(error);
-//     }
-//     const company = await Company.create(req.body);
-//     return res.status(201).json({ company });
-//   } catch (err) {
-//     return next(err);
-//   }
-// });
+router.post("/", async function (req, res, next) {
+  try {
+    // const result = jsonschema.validate(req.body, companySchema);
+    // if (!result.valid) {
+    //   let listOfErrors = result.errors.map(error => error.stack);
+    //   let error = new ExpressError(listOfErrors, 400);
+    //   return next(error);
+    // }
+    const job = await Job.create(req.body);
+    return res.status(201).json({ job });
+  } catch (err) {
+    return next(err);
+  }
+});
 
-// router.patch("/:handle", async function (req, res, next) {
-//   try {
+router.patch("/:id", async function (req, res, next) {
+  try {
 
-//     //get company record by handle
-//     let originalCompany = await Company.findOne(req.params.handle);
+    // //get company record by handle
+    // let originalJob = await Job.findOne(req.params.id);
 
-//     //spread original company and req.body and assign/update request values to the orignal record
-//     const patchedCompany = { ...originalCompany, ...req.body }
+    // //spread original company and req.body and assign/update request values to the orignal record
+    // const patchedJob = { ...originalJob, ...req.body }
 
-//     const result = jsonschema.validate(patchedCompany, companySchema);
-//     if (!result.valid) {
-//       let listOfErrors = result.errors.map(error => error.stack);
-//       let error = new ExpressError(listOfErrors, 400);
-//       return next(error);
-//     }
+    // const result = jsonschema.validate(patchedJob, jobSchema);
+    // if (!result.valid) {
+    //   let listOfErrors = result.errors.map(error => error.stack);
+    //   let error = new ExpressError(listOfErrors, 400);
+    //   return next(error);
+    // }
 
-//     const company = await Company.update(req.params.handle, req.body);
-//     return res.json({ company })
+    const job = await Job.update(req.params.id, req.body);
+    return res.json({ job })
 
-//   } catch (err) {
-//     return next(err)
-//   }
-// })
+  } catch (err) {
+    return next(err)
+  }
+})
 
-// /** DELETE /[handle]   => {message: "Company deleted"} */
+/** DELETE /[handle]   => {message: "Company deleted"} */
 
-// router.delete("/:handle", async function (req, res, next) {
-//   try {
-//     await Company.remove(req.params.handle)
-//     return res.json({ message: "Company deleted" })
-//   } catch (err) {
-//     return next(err)
-//   }
-// })
+router.delete("/:id", async function (req, res, next) {
+  try {
+    await Job.remove(req.params.id)
+    return res.json({ message: "Job deleted" })
+  } catch (err) {
+    return next(err)
+  }
+})
 
 
 module.exports = router

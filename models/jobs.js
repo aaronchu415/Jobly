@@ -18,6 +18,7 @@ class Job {
             FROM jobs 
             WHERE id = $1`, [id]);
 
+
     if (jobRes.rows.length === 0) {
       throw { message: `There is no job with an id of '${id}'`, status: 404 }
     }
@@ -41,28 +42,28 @@ class Job {
                         company_handle
                         FROM jobs`
 
-    // if (min_salary) {
-    //   values.push(+min_salary)
-    //   wheres.push(`salary > $${values.length}`)
-    // }
+    if (min_salary) {
+      values.push(+min_salary)
+      wheres.push(`salary > $${values.length}`)
+    }
 
-    // if (min_equity) {
-    //   values.push(+min_equity)
-    //   wheres.push(`equity > $${values.length}`)
-    // }
+    if (min_equity) {
+      values.push(+min_equity)
+      wheres.push(`equity > $${values.length}`)
+    }
 
-    // if (search) {
-    //   values.push(`%${search}%`)
-    //   wheres.push(`title ILIKE $${values.length}`)
-    // }
+    if (search) {
+      values.push(`%${search}%`)
+      wheres.push(`title ILIKE $${values.length}`)
+    }
 
-    // if (wheres.length > 0) {
-    //   query = query + ' WHERE ' + wheres.join(' AND ')
-    // }
+    if (wheres.length > 0) {
+      query = query + ' WHERE ' + wheres.join(' AND ')
+    }
 
     query = query + ' ORDER BY date_posted DESC'
 
-    const jobRes = await db.query(query);
+    const jobRes = await db.query(query, values);
 
     return jobRes.rows;
   }
@@ -75,21 +76,16 @@ class Job {
    *
    * */
 
-  static async create({ handle, name, num_employees, description, logo_url }) {
+  static async create({ title, salary, equity, company_handle }) {
     const result = await db.query(
-      `INSERT INTO companies (
-                handle,
-                name,
-                num_employees,
-                description,
-                logo_url) 
-         VALUES ($1, $2, $3, $4, $5) 
-         RETURNING handle,
-         name,
-         num_employees,
-         description,
-         logo_url`,
-      [handle, name, num_employees, description, logo_url]
+      `INSERT INTO jobs (
+                title,
+                salary,
+                equity,
+                company_handle) 
+         VALUES ($1, $2, $3, $4) 
+         RETURNING *`,
+      [title, salary, equity, company_handle]
     );
 
     return result.rows[0];
@@ -103,17 +99,17 @@ class Job {
    *
    * */
 
-  static async update(handle, data) {
+  static async update(id, data) {
 
-    let table = "companies"
-    let key = 'handle'
+    let table = "jobs"
+    let key = 'id'
 
-    let { query, values } = sqlForPartialUpdate(table, data, key, handle)
+    let { query, values } = sqlForPartialUpdate(table, data, key, id)
 
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
-      throw { message: `There is no job with a handle '${handle}`, status: 404 }
+      throw { message: `There is no job with id '${id}`, status: 404}
     }
 
     return result.rows[0];
@@ -121,15 +117,15 @@ class Job {
 
   /** remove job with matching handle. Returns undefined. */
 
-  static async remove(handle) {
+  static async remove(id) {
     const result = await db.query(
-      `DELETE FROM companies 
-         WHERE handle = $1 
-         RETURNING handle`,
-      [handle]);
+      `DELETE FROM jobs
+         WHERE id = $1 
+         RETURNING id`,
+      [id]);
 
     if (result.rows.length === 0) {
-      throw { message: `There is no job with a handle '${handle}`, status: 404 }
+      throw { message: `There is no job with id '${id}`, status: 404 }
     }
   }
 }

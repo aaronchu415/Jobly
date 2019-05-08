@@ -56,72 +56,62 @@ describe("GET /jobs", function () {
         expect(response.body.jobs).toEqual([jobResult])
     })
 
-    // const companyResult = [{
-    //     handle: 'amzn',
-    //     name: 'Amazon',
-    //     num_employees: 1000,
-    //     description: 'Ecommerce company',
-    //     logo_url:
-    //         'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1'
-    // }]
+    test("WITH FILTER - Return title & company for all of the jobs", async function () {
+        const response = await request(app)
+            .get("/jobs?search=software");
+        expect(response.statusCode).toBe(200);
+    })
 
-    //     // test("WITH FILTER - Return handle and name for all of the company objects", async function () {
-    //     //     const response = await request(app)
-    //     //         .get("/companies?search=amzn");
-    //     //     expect(response.statusCode).toBe(200);
-    //     //     expect(response.body.companies).toEqual(companyResult)
-    //     // })
-
-    //     // test("WITH FILTER - Return no results", async function () {
-    //     //     const response = await request(app)
-    //     //         .get("/companies?search=abc");
-    //     //     expect(response.statusCode).toBe(200);
-    //     //     expect(response.body.companies).toEqual([])
-    //     // })
+    test("WITH FILTER - Return no results", async function () {
+        const response = await request(app)
+            .get("/jobs?search=abc");
+        expect(response.statusCode).toBe(200);
+        expect(response.body.jobs).toEqual([])
+    })
 })
 
-// describe("DELETE /jobs", function () {
+describe("DELETE /jobs", function () {
 
-//     test("Should remove an existing job and return a message => { message: 'Job deleted' ", async function () {
-//         const response = await request(app)
-//             .delete(`/jobs/${testJobID}`);
+    test("Should remove an existing job and return a message => { message: 'Job deleted' ", async function () {
+        const response = await request(app)
+            .delete(`/jobs/${testJobID}`);
 
-//         //test status code and response   
-//         expect(response.statusCode).toBe(200);
-//         expect(response.body).toEqual({ message: 'Job deleted' })
+        //test status code and response   
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toEqual({ message: 'Job deleted' })
 
-//         //query DB for handle. Should not exist in db
-//         let testResult = await db.query(`
-//         SELECT * from jobs WHERE id=$1
-//         `, [testJobID]);
-//         expect(testResult.rows).toHaveLength(0);
-//     })
-// })
+        //query DB for handle. Should not exist in db
+        let testResult = await db.query(`
+        SELECT * from jobs WHERE id=$1
+        `, [testJobID]);
+        expect(testResult.rows).toHaveLength(0);
+    })
+})
 
-// describe("POST /jobs", function () {
+describe("POST /jobs", function () {
 
-//     test("Create a new job (With valid data)", async function () {
+    test("Create a new job (With valid data)", async function () {
 
-//         let data = {
-//             title: "Sales Associate",
-//             salary: 200000,
-//             equity: 0.2,
-//             company_handle: "amzn"
-//         }
+        let data = {
+            title: "Sales Associate",
+            salary: 200000,
+            equity: 0.2,
+            company_handle: "amzn"
+        }
 
-//         const response = await request(app)
-//             .post("/jobs")
-//             .send(data);
+        const response = await request(app)
+            .post("/jobs")
+            .send(data);
 
-//         expect(response.statusCode).toBe(201);
-//         expect(response.body.job.title).toEqual("Sales Associate")
-//         expect(response.body.job.company_handle).toEqual("amzn");
+        expect(response.statusCode).toBe(201);
+        expect(response.body.job.title).toEqual("Sales Associate")
+        expect(response.body.job.company_handle).toEqual("amzn");
 
-//         //db should have two records 
-//         let resultAll = await db.query(`
-//         SELECT * from jobs`);
-//         expect(resultAll.rows).toHaveLength(2);
-//     })
+        //db should have two records 
+        let resultAll = await db.query(`
+        SELECT * from jobs`);
+        expect(resultAll.rows).toHaveLength(2);
+    })
 
     // test("Create a new company (Without valid data)", async function () {
 
@@ -150,78 +140,60 @@ describe("GET /jobs", function () {
     //     SELECT * from companies`);
     //     expect(resultAll.rows).toHaveLength(1);
     // })
+});
 
-    // describe("GET /companies/:handle", function () {
-    //     test("Get single company information", async function () {
-    //         const companyResult = {
-    //             handle: 'amzn',
-    //             name: 'Amazon',
-    //             num_employees: 1000,
-    //             description: 'Ecommerce company',
-    //             logo_url:
-    //                 'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1'
-    //         }
+describe("GET /jobs/:id", function () {
+    test("Get single job information", async function () {
 
-    //         const response = await request(app).get("/companies/amzn")
+        const response = await request(app).get(`/jobs/${testJobID}`)
+        expect(response.statusCode).toBe(200);
+    });
 
-    //         expect(response.statusCode).toBe(200);
-    //         expect(response.body.company).toEqual(companyResult);
-    //     });
+    test("Non existing job - nothing returned", async function () {
+        const response = await request(app).get("/jobs/876")
 
-    //     test("Non existing company - no return", async function () {
-    //         const response = await request(app).get("/companies/abc")
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toEqual({ message: `There is no job with an id of '876'`, status: 404 })
+    })
+});
 
-    //         expect(response.statusCode).toBe(404);
-    //         expect(response.body).toEqual({ message: `There is no company with a handle 'abc'`, status: 404 })
-    //     })
-    // });
+describe("PATCH /jobs/:id", function () {
+    test("Update single job record", async function () {
+   
+        const response = await request(app)
+            .patch(`/jobs/${testJobID}`)
+            .send({
+                title: "Web Developer"
+            });
 
-    // describe("PATCH /companies/:handle", function () {
-    //     test("Update single company record", async function () {
-    //         const companyResult = {
-    //             handle: 'amzn',
-    //             name: 'Amazon',
-    //             num_employees: 7896,
-    //             description: 'Ecommerce company',
-    //             logo_url:
-    //                 'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1'
-    //         }
-    //         const response = await request(app)
-    //             .patch("/companies/amzn")
-    //             .send({
-    //                 num_employees: 7896
-    //             });
+        expect(response.statusCode).toBe(200)
+        expect(response.body.job.title).toEqual("Web Developer");
 
-    //         expect(response.statusCode).toBe(200)
-    //         expect(response.body.company).toEqual(companyResult);
+        //Should update db record
+        let result = await db.query(`
+        SELECT * from jobs WHERE id=$1
+        `, [testJobID]);
+        expect(result.rows[0].title).toEqual("Web Developer");
+    })
 
-    //         //Should update db record
-    //         let result = await db.query(`
-    //         SELECT * from companies WHERE handle=$1
-    //         `, [companyResult.handle]);
-    //         expect(result.rows[0]).toEqual(companyResult);
-    //     })
+    // test("Update single company record with invalid field", async function () {
 
-    //     test("Update single company record with invalid field", async function () {
-
-    //         const response = await request(app)
-    //             .patch("/companies/amzn")
-    //             .send({
-    //                 name: null
-    //             });
-
-    //         expect(response.statusCode).toBe(400)
-    //         expect(response.body).toEqual({
-    //             "status": 400,
-    //             "message": [
-    //                 "instance.name is not of a type(s) string"
-    //             ]
+    //     const response = await request(app)
+    //         .patch("/companies/amzn")
+    //         .send({
+    //             name: null
     //         });
 
-    //     });
-    // })
+    //     expect(response.statusCode).toBe(400)
+    //     expect(response.body).toEqual({
+    //         "status": 400,
+    //         "message": [
+    //             "instance.name is not of a type(s) string"
+    //         ]
+    //     })
 
-// })
+    // })
+});
 
 
 // })
