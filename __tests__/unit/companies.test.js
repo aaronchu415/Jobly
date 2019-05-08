@@ -1,3 +1,10 @@
+/** 
+ * If you want to run jest test sequentially, in pacakage.json, configure:   "test": "jest --runInBand", under "scripts"
+ * 
+ * On command line run: npm test
+ * 
+*/
+
 process.env.NODE_ENV = "test";
 const request = require("supertest");
 const app = require("../../app");
