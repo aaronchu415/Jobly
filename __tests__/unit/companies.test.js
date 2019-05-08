@@ -26,16 +26,38 @@ afterAll(async function () {
     await db.end();
 });
 
-// describe("GET /companies", function () {
+describe("GET /companies", function () {
 
-//     test("Should return a the handle and name for all of the company objects.", async function () {
-//         const response = await request(app)
-//             .get("/companies");
-//         expect(response.statusCode).toBe(201);
-//         // expect(response.body.book).toHaveProperty("isbn")
-//         // expect(response.body.book.isbn).toEqual("0691161789");
-//     })
-// })
+    test("NO FILTER - Return handle and name for all of the company objects", async function () {
+        const response = await request(app)
+            .get("/companies");
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty("companies")
+    })
+
+    const companyResult = [{
+        handle: 'amzn',
+        name: 'Amazon',
+        num_employees: 1000,
+        description: 'Ecommerce company',
+        logo_url:
+            'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1'
+    }]
+
+    test("WITH FILTER - Return handle and name for all of the company objects", async function () {
+        const response = await request(app)
+            .get("/companies?search=amzn");
+        expect(response.statusCode).toBe(200);
+        expect(response.body.companies).toEqual(companyResult)
+    })
+
+    test("WITH FILTER - Return no results", async function () {
+        const response = await request(app)
+            .get("/companies?search=abc");
+        expect(response.statusCode).toBe(200);
+        expect(response.body.companies).toEqual([])
+    })
+})
 
 // describe("DELETE /companies", function () {
 
