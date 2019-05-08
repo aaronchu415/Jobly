@@ -14,29 +14,6 @@ CREATE TABLE companies (
     logo_url TEXT
 );
 
--- seed data 
-INSERT INTO companies
-VALUES ('amzn',
-        'Amazon',
-        1000,
-        'Ecommerce company',
-        'https://pmcvariety.files.wordpress.com/2018/01/amazon-logo.jpg?w=1000&h=562&crop=1');
-
-INSERT INTO companies
-VALUES ('aapl',
-        'Apple',
-        2000,
-        'Hardware company',
-        'https://banner2.kisspng.com/20180515/hhq/kisspng-apple-logo-company-5afb1f7493fcc9.9811145215264070286062.jpg');
-
-INSERT INTO companies
-VALUES ('fb',
-        'Facebook',
-        3000,
-        'Social Network company',
-        'https://cdn0.tnwcdn.com/wp-content/blogs.dir/1/files/2015/07/sdffdsafsdf-1200x604.png');
-
-
 -- Create a table for jobs, each job should have an:
 
 -- id: a primary key that is an auto incrementing integer
@@ -56,9 +33,7 @@ CREATE TABLE jobs (
     date_posted TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
 );
 
-
     
-
 
 -- Create a table for users, each user should have a:
 

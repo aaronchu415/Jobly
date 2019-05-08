@@ -1,5 +1,12 @@
 /** Express app for jobly. */
 
+/** ExpressError extends the normal JS error so we can easily
+ *  add a status when we make an instance of it.
+ *
+ *  The error-handling middleware will return this.
+ */
+
+
 const express = require("express");
 
 const ExpressError = require("./helpers/expressError");
@@ -7,6 +14,7 @@ const ExpressError = require("./helpers/expressError");
 const morgan = require("morgan");
 
 const companyRoutes = require('./routes/companies')
+const jobRoutes = require('./routes/jobs')
 
 const app = express();
 
@@ -16,6 +24,7 @@ app.use(express.json());
 app.use(morgan("tiny"));
 
 app.use('/companies', companyRoutes)
+app.use('/jobs', jobRoutes)
 
 /** 404 handler */
 
@@ -30,6 +39,7 @@ app.use(function (req, res, next) {
 
 app.use(function (err, req, res, next) {
   res.status(err.status || 500);
+
   if (process.env.NODE_ENV !== 'test') {
     console.error(err.stack);
   }
