@@ -5,15 +5,15 @@ const sqlForPartialUpdate = require('../helpers/partialUpdate')
 /** Collection of related methods for a company. */
 
 class Company {
-    /** given an handle, return company data with that handle:
-     *
-     * => {handle, name,num_employees,description,logo_url}
-     *
-     **/
+  /** given an handle, return company data with that handle:
+   *
+   * => {handle, name,num_employees,description,logo_url}
+   *
+   **/
 
-    static async findOne(handle) {
-        const companyRes = await db.query(
-            `SELECT handle,
+  static async findOne(handle) {
+    const companyRes = await db.query(
+      `SELECT handle,
             name,
             num_employees,
             description,
@@ -21,79 +21,79 @@ class Company {
             FROM companies 
             WHERE handle = $1`, [handle]);
 
-        if (companyRes.rows.length === 0) {
-            throw { message: `There is no company with a handle '${handle}'`, status: 404 }
-        }
-
-        const jobs = await db.query(
-            `SELECT title FROM jobs WHERE company_handle = $1`, [handle]
-        )
-
-        let company = companyRes.rows[0]
-        company.jobs = jobs.rows
-
-        return company
+    if (companyRes.rows.length === 0) {
+      throw { message: `There is no company with a handle '${handle}'`, status: 404 }
     }
 
-    /** Return array of company data:
-     *
-     * => [ {handle, name,num_employees,description,logo_url}, ... , ... ]
-     *
-     * */
+    const jobs = await db.query(
+      `SELECT title FROM jobs WHERE company_handle = $1`, [handle]
+    )
 
-    static async findAll({ search, min_employees, max_employees }) {
+    let company = companyRes.rows[0]
+    company.jobs = jobs.rows
 
-        //figure out what to do when one is undefined
-        if (min_employees > max_employees) {
-            throw { message: `Min_employees cannot be greater than max_employees `, status: 400 }
-        }
-        //Figure out how to make general
+    return company
+  }
 
-        let values = []
-        let wheres = []
+  /** Return array of company data:
+   *
+   * => [ {handle, name,num_employees,description,logo_url}, ... , ... ]
+   *
+   * */
 
-        let query = `SELECT handle,
+  static async findAll({ search, min_employees, max_employees }) {
+
+    //figure out what to do when one is undefined
+    if (min_employees > max_employees) {
+      throw { message: `Min_employees cannot be greater than max_employees `, status: 400 }
+    }
+    //Figure out how to make general
+
+    let values = []
+    let wheres = []
+
+    let query = `SELECT handle,
                         name,
                         num_employees,
                         description,
                         logo_url
                         FROM companies`
 
-        if (min_employees) {
-            values.push(+min_employees)
-            wheres.push(`num_employees >= $${values.length}`)
-        }
-
-        if (max_employees) {
-            values.push(+max_employees)
-            wheres.push(`num_employees <= $${values.length}`)
-        }
-
-        if (search) {
-            values.push(`%${search}%`)
-            wheres.push(`(name ILIKE $${values.length} OR handle ILIKE $${values.length})`)
-        }
-
-        if (wheres.length > 0) {
-            query = query + ' WHERE ' + wheres.join(' AND ')
-        }
-
-        const companyRes = await db.query(query, values);
-
-        return companyRes.rows;
+    if (min_employees) {
+      values.push(+min_employees)
+      wheres.push(`num_employees >= $${values.length}`)
     }
 
-    /** create company in database from data, return company data:
-     *
-     * {handle, name,num_employees,description,logo_url}
-     *
-     * => {handle, name,num_employees,description,logo_url}
-     *
-     * */
+    if (max_employees) {
+      values.push(+max_employees)
+      wheres.push(`num_employees <= $${values.length}`)
+    }
 
-    static async create({ handle, name, num_employees, description, logo_url }) {
-        const result = await db.query(
-            `INSERT INTO companies (
+    if (search) {
+      values.push(`%${search}%`)
+      wheres.push(`(name ILIKE $${values.length} OR handle ILIKE $${values.length})`)
+    }
+
+    if (wheres.length > 0) {
+      query = query + ' WHERE ' + wheres.join(' AND ')
+    }
+
+    const companyRes = await db.query(query, values);
+
+    return companyRes.rows;
+  }
+
+  /** create company in database from data, return company data:
+   *
+   * {handle, name,num_employees,description,logo_url}
+   *
+   * => {handle, name,num_employees,description,logo_url}
+   *
+   * */
+
+  static async create({ handle, name, num_employees, description, logo_url }) {
+    const result = await db.query(
+      `INSERT INTO companies (
                 handle,
                 name,
                 num_employees,
@@ -105,49 +105,49 @@ class Company {
          num_employees,
          description,
          logo_url`,
-            [handle, name, num_employees, description, logo_url]
-        );
+      [handle, name, num_employees, description, logo_url]
+    );
 
-        return result.rows[0];
+    return result.rows[0];
+  }
+
+  /** Update data with matching ID to data, return updated book.
+ 
+   * {isbn, amazon_url, author, language, pages, publisher, title, year}
+   *
+   * => {isbn, amazon_url, author, language, pages, publisher, title, year}
+   *
+   * */
+
+  static async update(handle, data) {
+
+    let table = "companies"
+    let key = 'handle'
+
+    let { query, values } = sqlForPartialUpdate(table, data, key, handle)
+
+    const result = await db.query(query, values);
+
+    if (result.rows.length === 0) {
+      throw { message: `There is no company with a handle '${handle}`, status: 404 }
     }
 
-    /** Update data with matching ID to data, return updated book.
-   
-     * {isbn, amazon_url, author, language, pages, publisher, title, year}
-     *
-     * => {isbn, amazon_url, author, language, pages, publisher, title, year}
-     *
-     * */
+    return result.rows[0];
+  }
 
-    static async update(handle, data) {
+  /** remove company with matching handle. Returns undefined. */
 
-        let table = "companies"
-        let key = 'handle'
-
-        let { query, values } = sqlForPartialUpdate(table, data, key, handle)
-
-        const result = await db.query(query, values);
-
-        if (result.rows.length === 0) {
-            throw { message: `There is no company with a handle '${handle}`, status: 404 }
-        }
-
-        return result.rows[0];
-    }
-
-    /** remove company with matching handle. Returns undefined. */
-
-    static async remove(handle) {
-        const result = await db.query(
-            `DELETE FROM companies 
+  static async remove(handle) {
+    const result = await db.query(
+      `DELETE FROM companies 
          WHERE handle = $1 
          RETURNING handle`,
-            [handle]);
+      [handle]);
 
-        if (result.rows.length === 0) {
-            throw { message: `There is no company with a handle '${handle}`, status: 404 }
-        }
+    if (result.rows.length === 0) {
+      throw { message: `There is no company with a handle '${handle}`, status: 404 }
     }
+  }
 }
 
 

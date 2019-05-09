@@ -1,7 +1,5 @@
 const db = require("../db");
-const sqlForPartialUpdate = require('../helpers/partialUpdate')
-
-
+const sqlForPartialUpdate = require('../helpers/partialUpdate');
 
 /** Collection of related methods for a job. */
 
@@ -12,14 +10,14 @@ class Job {
    *
    **/
 
-  static async findOne(id, allData=false) {
+  static async findOne(id, allData = false) {
     let jobRes;
     if (allData) {
       jobRes = await db.query(
         `SELECT *
               FROM jobs 
               WHERE id = $1`, [id]);
-  
+
     } else {
       jobRes = await db.query(
         `SELECT title,
@@ -28,7 +26,7 @@ class Job {
               WHERE id = $1`, [id]);
 
     }
-    
+
     if (jobRes.rows.length === 0) {
       throw { message: `There is no job with an id of '${id}'`, status: 404 }
     }
@@ -119,7 +117,7 @@ class Job {
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
-      throw { message: `There is no job with id '${id}`, status: 404}
+      throw { message: `There is no job with id '${id}`, status: 404 }
     }
 
     return result.rows[0];

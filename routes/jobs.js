@@ -1,7 +1,7 @@
-const express = require('express')
-const router = new express.Router()
-const Job = require('../models/jobs')
-const ExpressError = require('../helpers/expressError')
+const express = require('express');
+const router = new express.Router();
+const Job = require('../models/jobs');
+const ExpressError = require('../helpers/expressError');
 
 const jsonschema = require("jsonschema");
 const jobSchema = require("../schemas/jobSchema.json");
@@ -24,7 +24,7 @@ router.get("/:id", async function (req, res, next) {
   } catch (err) {
     return next(err);
   }
-})
+});
 
 /** POST /   jobs  => {job: jobData} */
 
@@ -50,7 +50,7 @@ router.patch("/:id", async function (req, res, next) {
     let originalJob = await Job.findOne(req.params.id, true);
 
     //spread original company and req.body and assign/update request values to the orignal record
-    const patchedJob = { ...originalJob, ...req.body }
+    const patchedJob = { ...originalJob, ...req.body };
 
 
     const result = jsonschema.validate(patchedJob, jobSchema);
@@ -61,23 +61,23 @@ router.patch("/:id", async function (req, res, next) {
     }
 
     const job = await Job.update(req.params.id, req.body);
-    return res.json({ job })
+    return res.json({ job });
 
   } catch (err) {
-    return next(err)
+    return next(err);
   }
-})
+});
 
 /** DELETE /[handle]   => {message: "Company deleted"} */
 
 router.delete("/:id", async function (req, res, next) {
   try {
-    await Job.remove(req.params.id)
-    return res.json({ message: "Job deleted" })
+    await Job.remove(req.params.id);
+    return res.json({ message: "Job deleted" });
   } catch (err) {
-    return next(err)
+    return next(err);
   }
-})
+});
 
 
-module.exports = router
+module.exports = router;
