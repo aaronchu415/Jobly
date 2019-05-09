@@ -51,7 +51,7 @@ router.patch("/:username", ensureCorrectUser, async function (req, res, next) {
 
     //spread original company and req.body and assign/update request values to the orignal record
     const patchedUser = { ...originalUser, ...req.body };
-    patchedUser.photo_url = patchedUser.photo_url || "";
+    patchedUser.photo_url = patchedUser.photo_url || ""; //to clean up < update on db level or validator
 
     const result = jsonschema.validate(patchedUser, userSchema);
     if (!result.valid) {
@@ -81,7 +81,10 @@ router.post("/login", async function (req, res, next) {
   try {
     let { username, password } = req.body;
     if (await User.authenticate(username, password)) {
-      let token = jwt.sign({ username }, SECRET_KEY, {});
+
+      let user = await User.findOne(username, true);
+
+      let token = jwt.sign({ username: user.username, is_admin: user.is_admin }, SECRET_KEY, {});
       return res.json({ token });
     } else {
       throw new Error("Invalid username/password");
