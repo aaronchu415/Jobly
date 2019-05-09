@@ -1,6 +1,11 @@
 language: node_js
 node_js:
 - '10'
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database jobly-test;' -U postgres
+  - psql jobly-test < dataTest.sql
 install:
   - npm install jest
 script:
