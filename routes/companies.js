@@ -3,8 +3,6 @@ const router = new express.Router();
 const Company = require('../models/companies');
 const ExpressError = require('../helpers/expressError');
 const {ensureLoggedIn, ensureAdmin} = require("../middleware/auth");
-
-
 const jsonschema = require("jsonschema");
 const companySchema = require("../schemas/companySchema.json");
 

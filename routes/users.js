@@ -5,12 +5,8 @@ const ExpressError = require('../helpers/expressError');
 const jwt = require("jsonwebtoken");
 const { SECRET_KEY } = require("../config");
 const {ensureLoggedIn, ensureCorrectUser} = require("../middleware/auth");
-
-
 const jsonschema = require("jsonschema");
 const userSchema = require("../schemas/userSchema.json");
-
-
 
 router.get("/", async function (req, res, next) {
   try {
@@ -55,7 +51,7 @@ router.patch("/:username", ensureCorrectUser, async function (req, res, next) {
 
     //spread original company and req.body and assign/update request values to the orignal record
     const patchedUser = { ...originalUser, ...req.body };
-    patchedUser.photo_url = patchedUser.photo_url || ""
+    patchedUser.photo_url = patchedUser.photo_url || "";
 
     const result = jsonschema.validate(patchedUser, userSchema);
     if (!result.valid) {
@@ -86,12 +82,12 @@ router.post("/login", async function(req, res, next) {
     let { username, password } = req.body;
     if (await User.authenticate(username, password)) {
       let token = jwt.sign({username}, SECRET_KEY, {});
-      return res.json({token})
+      return res.json({token});
     } else {
-      throw new Error("Invalid username/password")
+      throw new Error("Invalid username/password");
     }
   } catch (err) {
-    return next(err)
+    return next(err);
   }
 });
 

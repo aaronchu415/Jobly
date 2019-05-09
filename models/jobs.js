@@ -28,7 +28,7 @@ class Job {
     }
 
     if (jobRes.rows.length === 0) {
-      throw { message: `There is no job with an id of '${id}'`, status: 404 }
+      throw { message: `There is no job with an id of '${id}'`, status: 404 };
     }
     return jobRes.rows[0];
   }
@@ -43,33 +43,33 @@ class Job {
 
     //Figure out how to make general
 
-    let values = []
-    let wheres = []
+    let values = [];
+    let wheres = [];
 
     let query = `SELECT title,
                         company_handle
-                        FROM jobs`
+                        FROM jobs`;
 
     if (min_salary) {
-      values.push(+min_salary)
-      wheres.push(`salary > $${values.length}`)
+      values.push(+min_salary);
+      wheres.push(`salary > $${values.length}`);
     }
 
     if (min_equity) {
-      values.push(+min_equity)
-      wheres.push(`equity > $${values.length}`)
+      values.push(+min_equity);
+      wheres.push(`equity > $${values.length}`);
     }
 
     if (search) {
-      values.push(`%${search}%`)
-      wheres.push(`title ILIKE $${values.length}`)
+      values.push(`%${search}%`);
+      wheres.push(`title ILIKE $${values.length}`);
     }
 
     if (wheres.length > 0) {
-      query = query + ' WHERE ' + wheres.join(' AND ')
+      query = query + ' WHERE ' + wheres.join(' AND ');
     }
 
-    query = query + ' ORDER BY date_posted DESC'
+    query = query + ' ORDER BY date_posted DESC';
 
     const jobRes = await db.query(query, values);
 
@@ -109,15 +109,15 @@ class Job {
 
   static async update(id, data) {
 
-    let table = "jobs"
-    let key = 'id'
+    let table = "jobs";
+    let key = 'id';
 
-    let { query, values } = sqlForPartialUpdate(table, data, key, id)
+    let { query, values } = sqlForPartialUpdate(table, data, key, id);
 
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
-      throw { message: `There is no job with id '${id}`, status: 404 }
+      throw { message: `There is no job with id '${id}`, status: 404 };
     }
 
     return result.rows[0];
@@ -133,7 +133,7 @@ class Job {
       [id]);
 
     if (result.rows.length === 0) {
-      throw { message: `There is no job with id '${id}`, status: 404 }
+      throw { message: `There is no job with id '${id}`, status: 404 };
     }
   }
 }

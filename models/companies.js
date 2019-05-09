@@ -1,5 +1,5 @@
 const db = require("../db");
-const sqlForPartialUpdate = require('../helpers/partialUpdate')
+const sqlForPartialUpdate = require('../helpers/partialUpdate');
 
 
 /** Collection of related methods for a company. */
@@ -22,17 +22,17 @@ class Company {
             WHERE handle = $1`, [handle]);
 
     if (companyRes.rows.length === 0) {
-      throw { message: `There is no company with a handle '${handle}'`, status: 404 }
+      throw { message: `There is no company with a handle '${handle}'`, status: 404 };
     }
 
     const jobs = await db.query(
       `SELECT title FROM jobs WHERE company_handle = $1`, [handle]
-    )
+    );
 
-    let company = companyRes.rows[0]
-    company.jobs = jobs.rows
+    let company = companyRes.rows[0];
+    company.jobs = jobs.rows;
 
-    return company
+    return company;
   }
 
   /** Return array of company data:
@@ -45,37 +45,37 @@ class Company {
 
     //figure out what to do when one is undefined
     if (min_employees > max_employees) {
-      throw { message: `Min_employees cannot be greater than max_employees `, status: 400 }
+      throw { message: `Min_employees cannot be greater than max_employees `, status: 400 };
     }
     //Figure out how to make general
 
-    let values = []
-    let wheres = []
+    let values = [];
+    let wheres = [];
 
     let query = `SELECT handle,
                         name,
                         num_employees,
                         description,
                         logo_url
-                        FROM companies`
+                        FROM companies`;
 
     if (min_employees) {
-      values.push(+min_employees)
-      wheres.push(`num_employees >= $${values.length}`)
+      values.push(+min_employees);
+      wheres.push(`num_employees >= $${values.length}`);
     }
 
     if (max_employees) {
-      values.push(+max_employees)
-      wheres.push(`num_employees <= $${values.length}`)
+      values.push(+max_employees);
+      wheres.push(`num_employees <= $${values.length}`);
     }
 
     if (search) {
-      values.push(`%${search}%`)
-      wheres.push(`(name ILIKE $${values.length} OR handle ILIKE $${values.length})`)
+      values.push(`%${search}%`);
+      wheres.push(`(name ILIKE $${values.length} OR handle ILIKE $${values.length})`);
     }
 
     if (wheres.length > 0) {
-      query = query + ' WHERE ' + wheres.join(' AND ')
+      query = query + ' WHERE ' + wheres.join(' AND ');
     }
 
     const companyRes = await db.query(query, values);
@@ -121,15 +121,15 @@ class Company {
 
   static async update(handle, data) {
 
-    let table = "companies"
-    let key = 'handle'
+    let table = "companies";
+    let key = 'handle';
 
-    let { query, values } = sqlForPartialUpdate(table, data, key, handle)
+    let { query, values } = sqlForPartialUpdate(table, data, key, handle);
 
     const result = await db.query(query, values);
 
     if (result.rows.length === 0) {
-      throw { message: `There is no company with a handle '${handle}`, status: 404 }
+      throw { message: `There is no company with a handle '${handle}`, status: 404 };
     }
 
     return result.rows[0];
@@ -145,7 +145,7 @@ class Company {
       [handle]);
 
     if (result.rows.length === 0) {
-      throw { message: `There is no company with a handle '${handle}`, status: 404 }
+      throw { message: `There is no company with a handle '${handle}`, status: 404 };
     }
   }
 }
