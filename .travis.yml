@@ -4,8 +4,8 @@ node_js:
 services:
   - postgresql
 before_script:
-  - psql -c 'create database jobly-test;' -U postgres
-  - psql jobly-test < dataTest.sql
+  - psql -c 'create database jobly_test;' -U postgres
+  - psql jobly_test < dataTest.sql
 install:
   - npm install jest
 script:
