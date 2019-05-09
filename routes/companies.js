@@ -2,13 +2,15 @@ const express = require('express');
 const router = new express.Router();
 const Company = require('../models/companies');
 const ExpressError = require('../helpers/expressError');
+const {ensureLoggedIn, ensureAdmin} = require("../middleware/auth");
+
 
 const jsonschema = require("jsonschema");
 const companySchema = require("../schemas/companySchema.json");
 
 /** GET / => {companies: [company, ...]}  */
 
-router.get("/", async function (req, res, next) {
+router.get("/", ensureLoggedIn, async function (req, res, next) {
   try {
     const companies = await Company.findAll(req.query);
     return res.json({ companies });
@@ -17,7 +19,7 @@ router.get("/", async function (req, res, next) {
   }
 });
 
-router.get("/:handle", async function (req, res, next) {
+router.get("/:handle", ensureLoggedIn, async function (req, res, next) {
   try {
     const company = await Company.findOne(req.params.handle);
     return res.json({ company });
@@ -28,7 +30,7 @@ router.get("/:handle", async function (req, res, next) {
 
 /** POST /   companyData => {company: companyData} */
 
-router.post("/", async function (req, res, next) {
+router.post("/", ensureAdmin, async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, companySchema);
     if (!result.valid) {
@@ -43,7 +45,7 @@ router.post("/", async function (req, res, next) {
   }
 });
 
-router.patch("/:handle", async function (req, res, next) {
+router.patch("/:handle", ensureAdmin, async function (req, res, next) {
   try {
 
     //get company record by handle
@@ -69,7 +71,7 @@ router.patch("/:handle", async function (req, res, next) {
 
 /** DELETE /[handle]   => {message: "Company deleted"} */
 
-router.delete("/:handle", async function (req, res, next) {
+router.delete("/:handle", ensureAdmin, async function (req, res, next) {
   try {
     await Company.remove(req.params.handle);
     return res.json({ message: "Company deleted" });

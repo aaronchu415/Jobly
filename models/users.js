@@ -48,6 +48,7 @@ class User {
     let hashPassword = await bcrypt.hash(password, BCRYPT_WORK_ROUNDS);
 
     is_admin = is_admin || false;
+    
 
     const result = await db.query(
       `INSERT INTO users (
@@ -62,7 +63,8 @@ class User {
             RETURNING username,
             first_name,
             last_name,
-            email`,
+            email,
+            is_admin`,
       [username, hashPassword, first_name, last_name, email, photo_url, is_admin]);
 
     return result.rows[0];
@@ -89,6 +91,8 @@ class User {
 
     let table = "users";
     let key = 'username';
+
+    data.photo_url = data.photo_url || ""
 
     if (data.password) {
       let hashPassword = await bcrypt.hash(data.password, BCRYPT_WORK_ROUNDS);

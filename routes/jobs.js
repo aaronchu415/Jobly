@@ -2,13 +2,15 @@ const express = require('express');
 const router = new express.Router();
 const Job = require('../models/jobs');
 const ExpressError = require('../helpers/expressError');
+const {ensureLoggedIn, ensureAdmin} = require("../middleware/auth");
+
 
 const jsonschema = require("jsonschema");
 const jobSchema = require("../schemas/jobSchema.json");
 
 /** GET / => {jobs: [jobsData, ...]}  */
 
-router.get("/", async function (req, res, next) {
+router.get("/", ensureLoggedIn, async function (req, res, next) {
   try {
     const jobs = await Job.findAll(req.query);
     return res.json({ jobs });
@@ -17,7 +19,7 @@ router.get("/", async function (req, res, next) {
   }
 });
 
-router.get("/:id", async function (req, res, next) {
+router.get("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
     const job = await Job.findOne(req.params.id);
     return res.json({ job });
@@ -28,7 +30,7 @@ router.get("/:id", async function (req, res, next) {
 
 /** POST /   jobs  => {job: jobData} */
 
-router.post("/", async function (req, res, next) {
+router.post("/", ensureAdmin, async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, jobSchema);
     if (!result.valid) {
@@ -43,7 +45,7 @@ router.post("/", async function (req, res, next) {
   }
 });
 
-router.patch("/:id", async function (req, res, next) {
+router.patch("/:id", ensureAdmin, async function (req, res, next) {
   try {
 
     //get company record by handle
@@ -70,7 +72,7 @@ router.patch("/:id", async function (req, res, next) {
 
 /** DELETE /[handle]   => {message: "Company deleted"} */
 
-router.delete("/:id", async function (req, res, next) {
+router.delete("/:id", ensureAdmin, async function (req, res, next) {
   try {
     await Job.remove(req.params.id);
     return res.json({ message: "Job deleted" });
