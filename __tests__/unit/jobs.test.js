@@ -4,11 +4,13 @@ const app = require("../../app");
 const db = require("../../db");
 
 var testJobID;
+var adminToken;
 
 beforeEach(async function () {
   //make sure jobs and company table is clear
   await db.query("DELETE FROM jobs");
   await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM users");
 
   //add 1 company
   await db.query(`
@@ -32,11 +34,28 @@ beforeEach(async function () {
     `);
 
   testJobID = resultJob.rows[0].id;
+
+  //create a user to get token
+  let user = {
+    username: "tim123",
+    password: "password",
+    first_name: "tim",
+    last_name: "garcia",
+    email: "tim@rithmschool.com",
+    is_admin: true
+  };
+
+  let userResponse = await request(app)
+    .post("/users")
+    .send(user);
+
+  adminToken = userResponse.body.token;
 });
 
 afterEach(async function () {
   await db.query("DELETE FROM jobs");
   await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM users");
 });
 
 afterAll(async function () {
@@ -50,7 +69,8 @@ describe("GET /jobs", function () {
   test("NO FILTER - Return title and company_handle for all of the jobs objects", async function () {
 
     const response = await request(app)
-      .get("/jobs");
+      .get("/jobs")
+      .set({ Authorization: adminToken });
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty("jobs");
     expect(response.body.jobs).toEqual([jobResult]);
@@ -58,13 +78,15 @@ describe("GET /jobs", function () {
 
   test("WITH FILTER - Return title & company for all of the jobs", async function () {
     const response = await request(app)
-      .get("/jobs?search=software");
+      .get("/jobs?search=software")
+      .set({ Authorization: adminToken });
     expect(response.statusCode).toBe(200);
   });
 
   test("WITH FILTER - Return no results", async function () {
     const response = await request(app)
-      .get("/jobs?search=abc");
+      .get("/jobs?search=abc")
+      .set({ Authorization: adminToken });
     expect(response.statusCode).toBe(200);
     expect(response.body.jobs).toEqual([]);
   });
@@ -74,7 +96,8 @@ describe("DELETE /jobs", function () {
 
   test("Should remove an existing job and return a message => { message: 'Job deleted' ", async function () {
     const response = await request(app)
-      .delete(`/jobs/${testJobID}`);
+      .delete(`/jobs/${testJobID}`)
+      .set({ Authorization: adminToken });
 
     //test status code and response   
     expect(response.statusCode).toBe(200);
@@ -101,6 +124,7 @@ describe("POST /jobs", function () {
 
     const response = await request(app)
       .post("/jobs")
+      .set({ Authorization: adminToken })
       .send(data);
 
     expect(response.statusCode).toBe(201);
@@ -123,6 +147,7 @@ describe("POST /jobs", function () {
 
     const response = await request(app)
       .post("/jobs")
+      .set({ Authorization: adminToken })
       .send(data);
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty("message");
@@ -138,12 +163,12 @@ describe("POST /jobs", function () {
 describe("GET /jobs/:id", function () {
   test("Get single job information", async function () {
 
-    const response = await request(app).get(`/jobs/${testJobID}`);
+    const response = await request(app).get(`/jobs/${testJobID}`).set({ Authorization: adminToken });
     expect(response.statusCode).toBe(200);
   });
 
   test("Non existing job - nothing returned", async function () {
-    const response = await request(app).get("/jobs/876");
+    const response = await request(app).get("/jobs/876").set({ Authorization: adminToken });
 
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ message: `There is no job with an id of '876'`, status: 404 });
@@ -155,6 +180,7 @@ describe("PATCH /jobs/:id", function () {
 
     const response = await request(app)
       .patch(`/jobs/${testJobID}`)
+      .set({ Authorization: adminToken })
       .send({
         title: "Web Developer"
       });
@@ -173,6 +199,7 @@ describe("PATCH /jobs/:id", function () {
 
     const response = await request(app)
       .patch(`/jobs/${testJobID}`)
+      .set({ Authorization: adminToken })
       .send({
         title: null
       });

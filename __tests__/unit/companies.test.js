@@ -11,9 +11,13 @@ const app = require("../../app");
 const db = require("../../db");
 
 var testCompanyHandle;
+var adminToken;
 
 beforeEach(async function () {
   await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM users");
+
+  //create a company in the db
   let result = await db.query(`
     INSERT INTO companies
     VALUES ('amzn',
@@ -24,11 +28,28 @@ beforeEach(async function () {
     RETURNING handle
     `);
 
+  //create a user to get token
+  let user = {
+    username: "tim123",
+    password: "password",
+    first_name: "tim",
+    last_name: "garcia",
+    email: "tim@rithmschool.com",
+    is_admin: true
+  };
+
+  let userResponse = await request(app)
+    .post("/users")
+    .send(user);
+
+  adminToken = userResponse.body.token;
+
   testCompanyHandle = result.rows[0].handle;
 });
 
 afterEach(async function () {
   await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM users");
 });
 
 afterAll(async function () {
@@ -39,7 +60,8 @@ describe("GET /companies", function () {
 
   test("NO FILTER - Return handle and name for all of the company objects", async function () {
     const response = await request(app)
-      .get("/companies");
+      .get("/companies")
+      .set({ Authorization: adminToken });
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty("companies");
   });
@@ -55,14 +77,16 @@ describe("GET /companies", function () {
 
   test("WITH FILTER - Return handle and name for all of the company objects", async function () {
     const response = await request(app)
-      .get("/companies?search=amzn");
+      .get("/companies?search=amzn")
+      .set({ Authorization: adminToken });
     expect(response.statusCode).toBe(200);
     expect(response.body.companies).toEqual(companyResult);
   });
 
   test("WITH FILTER - Return no results", async function () {
     const response = await request(app)
-      .get("/companies?search=abc");
+      .get("/companies?search=abc")
+      .set({ Authorization: adminToken });
     expect(response.statusCode).toBe(200);
     expect(response.body.companies).toEqual([]);
   });
@@ -72,7 +96,8 @@ describe("DELETE /companies", function () {
 
   test("Should remove an existing company and return a message => {message: 'Company deleted'}", async function () {
     const response = await request(app)
-      .delete(`/companies/${testCompanyHandle}`);
+      .delete(`/companies/${testCompanyHandle}`)
+      .set({ Authorization: adminToken });
 
     //test status code and response   
     expect(response.statusCode).toBe(200);
@@ -100,6 +125,7 @@ describe("POST /companies", function () {
 
     const response = await request(app)
       .post("/companies")
+      .set({ Authorization: adminToken })
       .send(data);
     expect(response.statusCode).toBe(201);
     expect(response.body.company).toHaveProperty("handle");
@@ -128,6 +154,7 @@ describe("POST /companies", function () {
 
     const response = await request(app)
       .post("/companies")
+      .set({ Authorization: adminToken })
       .send(data);
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty("message");
@@ -157,14 +184,14 @@ describe("POST /companies", function () {
         jobs: []
       };
 
-      const response = await request(app).get("/companies/amzn");
+      const response = await request(app).get("/companies/amzn").set({ Authorization: adminToken });
 
       expect(response.statusCode).toBe(200);
       expect(response.body.company).toEqual(companyResult);
     });
 
     test("Non existing company - no return", async function () {
-      const response = await request(app).get("/companies/abc");
+      const response = await request(app).get("/companies/abc").set({ Authorization: adminToken });
 
       expect(response.statusCode).toBe(404);
       expect(response.body).toEqual({ message: `There is no company with a handle 'abc'`, status: 404 });
@@ -183,6 +210,7 @@ describe("POST /companies", function () {
       };
       const response = await request(app)
         .patch("/companies/amzn")
+        .set({ Authorization: adminToken })
         .send({
           num_employees: 7896
         });
@@ -201,6 +229,7 @@ describe("POST /companies", function () {
 
       const response = await request(app)
         .patch("/companies/amzn")
+        .set({ Authorization: adminToken })
         .send({
           name: null
         });

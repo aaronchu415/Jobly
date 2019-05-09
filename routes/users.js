@@ -4,7 +4,7 @@ const User = require('../models/users');
 const ExpressError = require('../helpers/expressError');
 const jwt = require("jsonwebtoken");
 const { SECRET_KEY } = require("../config");
-const {ensureLoggedIn, ensureCorrectUser} = require("../middleware/auth");
+const { ensureLoggedIn, ensureCorrectUser } = require("../middleware/auth");
 const jsonschema = require("jsonschema");
 const userSchema = require("../schemas/userSchema.json");
 
@@ -36,7 +36,7 @@ router.post("/", async function (req, res, next) {
     }
     const user = await User.create(req.body);
 
-    let token = jwt.sign({username: user.username, is_admin: user.is_admin}, SECRET_KEY, {});
+    let token = jwt.sign({ username: user.username, is_admin: user.is_admin }, SECRET_KEY, {});
 
     return res.status(201).json({ token });
   } catch (err) {
@@ -77,12 +77,12 @@ router.delete("/:username", ensureCorrectUser, async function (req, res, next) {
   }
 });
 
-router.post("/login", async function(req, res, next) {
+router.post("/login", async function (req, res, next) {
   try {
     let { username, password } = req.body;
     if (await User.authenticate(username, password)) {
-      let token = jwt.sign({username}, SECRET_KEY, {});
-      return res.json({token});
+      let token = jwt.sign({ username }, SECRET_KEY, {});
+      return res.json({ token });
     } else {
       throw new Error("Invalid username/password");
     }

@@ -10,7 +10,7 @@ function authenticateJWT(req, res, next) {
     const tokenFromHeader = req.headers.authorization;
     const payload = jwt.verify(tokenFromHeader, SECRET_KEY);
     req.user = payload; // create a current user
-    console.log(`CURRENT USER ${req.user.username, req.user.is_admin}`);
+    // console.log(`CURRENT USER ${req.user.username, req.user.is_admin}`);
 
     return next();
   } catch (err) {
