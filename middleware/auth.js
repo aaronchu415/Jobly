@@ -23,7 +23,7 @@ function authenticateJWT(req, res, next) {
 
 function ensureLoggedIn(req, res, next) {
   if (!req.user) {
-    console.log(req.user.username);
+    
     return next({ status: 401, message: "Unauthorized" });
   } else {
     return next();
